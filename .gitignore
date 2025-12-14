@@ -1,4 +1,170 @@
-.venv/
-.env/
+# ===========================
+# Python Backend
+# ===========================
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-.ipynb_checkpoints/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+.env
+.env.local
+.env.*.local
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Project-specific dataset storage
+backend/datasets/
+backend/models/
+backend/preprocessed/
+
+# ===========================
+# Frontend (React)
+# ===========================
+
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+
+# Testing
+frontend/coverage/
+
+# Production build
+frontend/build/
+frontend/dist/
+
+# Misc
+frontend/.DS_Store
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/lerna-debug.log*
+
+# IDE
+frontend/.vscode/
+frontend/.idea/
+frontend/package-lock.json
+
+# ===========================
+# OS & Editor Files
+# ===========================
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+.vim/
+*.swp
+*.swo
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# ===========================
+# Temporary & Cache Files
+# ===========================
+
+tmp/
+temp/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+dist/
+.cache/
+.vuepress/dist/
+
+# ===========================
+# Testing
+# ===========================
+
+.pytest_cache/
+.coverage
+htmlcov/
+.nyc_output/
