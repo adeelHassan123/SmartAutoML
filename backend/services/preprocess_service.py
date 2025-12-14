@@ -27,11 +27,11 @@ def apply_preprocessing(dataset_id: str, request: PreprocessRequest) -> Dict[str
         original_shape = df.shape
 
         # Apply outlier handling first
-        df_cleaned = apply_outlier_handling(
+        df_cleaned, _ = apply_outlier_handling(
             df,
-            target_column=request.target_column,
             method=request.outlier_method,
-            action=request.outlier_action
+            action=request.outlier_action,
+            exclude_columns=[request.target_column]
         )
 
         # Ensure target column still present

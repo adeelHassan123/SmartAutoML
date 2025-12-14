@@ -109,6 +109,7 @@ frontend/lerna-debug.log*
 # IDE
 frontend/.vscode/
 frontend/.idea/
+frontend/package-lock.json
 
 # ===========================
 # OS & Editor Files

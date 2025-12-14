@@ -24,7 +24,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.dummy import DummyClassifier
 from sklearn.metrics import (
@@ -164,7 +164,7 @@ def train_and_optimize_models(
             'C': [0.01, 0.1, 1, 10],
             'solver': ['liblinear']
         }),
-        'K-Nearest Neighbors': (KNeighborsClassifier(), {
+        'K-Neighbors': (KNeighborsClassifier(), {
             'n_neighbors': [3, 5, 7],
             'weights': ['uniform', 'distance']
         }),
@@ -177,13 +177,37 @@ def train_and_optimize_models(
             'n_estimators': [50, 100, 200],
             'max_depth': [None, 10, 20]
         }),
-        'Support Vector Machine': (SVC(probability=True, random_state=random_state, class_weight=cw), {
+        'SVM': (SVC(probability=True, random_state=random_state, class_weight=cw), {
             'C': [0.1, 1, 10],
             'kernel': ['linear', 'rbf']
         }),
-        # Simple baseline often called "rule-based" in teaching contexts.
-        'Rule-based (Most Frequent)': (DummyClassifier(strategy='most_frequent', random_state=random_state), {}),
+        'Gradient Boosting': (GradientBoostingClassifier(random_state=random_state, n_iter_no_change=5), {
+            'n_estimators': [50, 100],
+            'learning_rate': [0.01, 0.1],
+            'max_depth': [3, 5]
+        }),
     }
+    
+    # Optional models - only add if available
+    try:
+        from xgboost import XGBClassifier
+        models['XGBoost'] = (XGBClassifier(random_state=random_state, use_label_encoder=False, eval_metric='logloss'), {
+            'n_estimators': [50, 100],
+            'max_depth': [3, 5],
+            'learning_rate': [0.01, 0.1]
+        })
+    except ImportError:
+        pass
+    
+    try:
+        from lightgbm import LGBMClassifier
+        models['LightGBM'] = (LGBMClassifier(random_state=random_state, verbose=-1), {
+            'n_estimators': [50, 100],
+            'max_depth': [3, 5],
+            'learning_rate': [0.01, 0.1]
+        })
+    except ImportError:
+        pass
     
     best_models = {}
     

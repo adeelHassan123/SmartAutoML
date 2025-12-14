@@ -28,7 +28,8 @@ const TrainComponent = () => {
     'XGBoost',
     'LightGBM',
     'K-Neighbors',
-    'Decision Tree'
+    'Decision Tree',
+    'Naive Bayes'
   ];
 
   const handleModelChange = (model) => {

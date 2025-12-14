@@ -73,7 +73,7 @@ class PreprocessResponse(BaseModel):
 
 VALID_MODELS = [
     'Logistic Regression', 'Random Forest', 'SVM', 'Gradient Boosting',
-    'XGBoost', 'LightGBM', 'K-Neighbors', 'Decision Tree'
+    'XGBoost', 'LightGBM', 'K-Neighbors', 'Decision Tree', 'Naive Bayes'
 ]
 
 VALID_SCORING_METRICS = [
