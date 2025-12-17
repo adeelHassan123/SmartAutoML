@@ -16,7 +16,8 @@ class UploadResponse(BaseModel):
 class SummaryResponse(BaseModel):
     shape: Tuple[int, int]
     dtypes: Dict[str, str] = Field(..., min_items=1)
-    stats: Dict[str, Any] = Field(..., min_items=1)
+    numerical_stats: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    categorical_distributions: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
 
     @validator('shape')
     def validate_shape(cls, v):

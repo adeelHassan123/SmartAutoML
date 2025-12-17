@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../App';
 import apiClient from '../api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const SummaryComponent = () => {
   const { datasetId } = useParams();
@@ -118,8 +119,20 @@ const SummaryComponent = () => {
     dtype.includes('int') || dtype.includes('float')
   ).length;
   const categoricalColumns = Object.values(summary.dtypes).filter(dtype =>
-    dtype.includes('object') || dtype.includes('string')
+    dtype.includes('object') || dtype.includes('string') || dtype.includes('category')
   ).length;
+
+  const hasNumericalStats = summary.numerical_stats && Object.keys(summary.numerical_stats).length > 0;
+  const hasCategoricalDistributions = summary.categorical_distributions && Object.keys(summary.categorical_distributions).length > 0;
+
+  // Helper function to convert distribution object to chart data format
+  const prepareChartData = (distribution) => {
+    return Object.entries(distribution).map(([label, count]) => ({
+      name: label === 'NaN' ? 'Missing' : String(label).substring(0, 20), // Truncate long labels
+      value: count,
+      fullLabel: label === 'NaN' ? 'Missing' : label
+    }));
+  };
 
   return (
     <div className="fade-in">
@@ -130,7 +143,7 @@ const SummaryComponent = () => {
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-3" style={{ marginBottom: '32px' }}>
+        <div className="grid grid-4" style={{ marginBottom: '32px' }}>
           <div style={{
             backgroundColor: 'var(--card-bg)',
             padding: '20px',
@@ -202,10 +215,36 @@ const SummaryComponent = () => {
               fontWeight: 'bold',
               color: 'var(--success-color)'
             }}>
-              {numericColumns + categoricalColumns}
+              {numericColumns}
             </div>
             <div style={{ fontSize: '14px', opacity: 0.7 }}>
-              Features Available
+              Numerical Features
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: 'var(--card-bg)',
+            padding: '20px',
+            borderRadius: '8px',
+            border: '1px solid var(--border-color)',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              fontSize: '32px',
+              color: 'var(--info-color)',
+              marginBottom: '8px'
+            }}>
+              🏷️
+            </div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              color: 'var(--info-color)'
+            }}>
+              {categoricalColumns}
+            </div>
+            <div style={{ fontSize: '14px', opacity: 0.7 }}>
+              Categorical Features
             </div>
           </div>
         </div>
@@ -272,7 +311,7 @@ const SummaryComponent = () => {
                           Numeric
                         </span>
                       )}
-                      {(dtype.includes('object') || dtype.includes('string')) && (
+                      {(dtype.includes('object') || dtype.includes('string') || dtype.includes('category')) && (
                         <span style={{
                           backgroundColor: 'var(--info-color)',
                           color: 'white',
@@ -302,45 +341,45 @@ const SummaryComponent = () => {
           </div>
         </div>
 
-        {/* Statistics Preview */}
-        {summary.stats && Object.keys(summary.stats).length > 0 && (
+        {/* Numerical Statistics */}
+        {hasNumericalStats && (
           <div style={{ marginBottom: '32px' }}>
             <h3 style={{
               color: 'var(--primary-color)',
               marginBottom: '16px',
               fontSize: '18px'
             }}>
-              📊 Statistical Summary
+              📊 Numerical Statistics
             </h3>
             <div style={{ overflowX: 'auto' }}>
               <table className="table">
                 <thead>
                   <tr>
                     <th>Statistic</th>
-                    {Object.keys(summary.stats).slice(0, 5).map(col => (
+                    {Object.keys(summary.numerical_stats).slice(0, 5).map(col => (
                       <th key={col}>{col}</th>
                     ))}
-                    {Object.keys(summary.stats).length > 5 && (
-                      <th>+{Object.keys(summary.stats).length - 5} more</th>
+                    {Object.keys(summary.numerical_stats).length > 5 && (
+                      <th>+{Object.keys(summary.numerical_stats).length - 5} more</th>
                     )}
                   </tr>
                 </thead>
                 <tbody>
-                  {summary.stats[Object.keys(summary.stats)[0]] &&
+                  {summary.numerical_stats[Object.keys(summary.numerical_stats)[0]] &&
                     ['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max'].map(stat => (
-                      summary.stats[Object.keys(summary.stats)[0]][stat] !== undefined && (
+                      summary.numerical_stats[Object.keys(summary.numerical_stats)[0]][stat] !== undefined && (
                         <tr key={stat}>
                           <td><strong>{stat}</strong></td>
-                          {Object.keys(summary.stats).slice(0, 5).map(col => (
+                          {Object.keys(summary.numerical_stats).slice(0, 5).map(col => (
                             <td key={col}>
-                              {summary.stats[col][stat] !== undefined ?
-                                (typeof summary.stats[col][stat] === 'number' ?
-                                  summary.stats[col][stat].toFixed(2) :
-                                  summary.stats[col][stat]) :
+                              {summary.numerical_stats[col][stat] !== undefined ?
+                                (typeof summary.numerical_stats[col][stat] === 'number' ?
+                                  summary.numerical_stats[col][stat].toFixed(2) :
+                                  summary.numerical_stats[col][stat]) :
                                 '-'}
                             </td>
                           ))}
-                          {Object.keys(summary.stats).length > 5 && (
+                          {Object.keys(summary.numerical_stats).length > 5 && (
                             <td style={{ opacity: 0.6 }}>...</td>
                           )}
                         </tr>
@@ -349,14 +388,111 @@ const SummaryComponent = () => {
                 </tbody>
               </table>
             </div>
-            {Object.keys(summary.stats).length > 5 && (
+            {Object.keys(summary.numerical_stats).length > 5 && (
               <p style={{
                 fontSize: '14px',
                 opacity: 0.7,
                 marginTop: '8px',
                 textAlign: 'center'
               }}>
-                Showing statistics for first 5 columns.
+                Showing statistics for first 5 numerical columns.
+                Full analysis available in EDA section.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Categorical Class Distributions */}
+        {hasCategoricalDistributions && (
+          <div style={{ marginBottom: '32px' }}>
+            <h3 style={{
+              color: 'var(--primary-color)',
+              marginBottom: '16px',
+              fontSize: '18px'
+            }}>
+              🏷️ Class Distributions
+            </h3>
+            <div className="grid grid-2" style={{ gap: '24px' }}>
+              {Object.entries(summary.categorical_distributions).slice(0, 6).map(([column, distribution]) => {
+                const chartData = prepareChartData(distribution);
+                const sortedData = chartData.sort((a, b) => b.value - a.value).slice(0, 15); // Top 15 classes
+                
+                return (
+                  <div key={column} style={{
+                    backgroundColor: 'var(--card-bg)',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    <h4 style={{
+                      marginBottom: '16px',
+                      color: 'var(--primary-color)',
+                      fontSize: '16px'
+                    }}>
+                      {column}
+                    </h4>
+                    
+                    {sortedData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={sortedData} margin={{ top: 5, right: 10, left: 0, bottom: 40 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                          <XAxis 
+                            dataKey="name" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={80}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 12 }}
+                          />
+                          <Tooltip 
+                            contentStyle={{
+                              backgroundColor: 'var(--card-bg)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '4px'
+                            }}
+                            cursor={{ fill: 'rgba(139, 69, 19, 0.1)' }}
+                            formatter={(value, name) => {
+                              if (name === 'value') {
+                                const percentage = ((value / summary.shape[0]) * 100).toFixed(1);
+                                return [`${value} (${percentage}%)`, 'Count'];
+                              }
+                              return value;
+                            }}
+                            labelFormatter={(label) => `Class: ${label}`}
+                          />
+                          <Bar dataKey="value" fill="var(--secondary-color)" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.6 }}>
+                        No data available
+                      </div>
+                    )}
+                    
+                    {sortedData.length < Object.keys(distribution).length && (
+                      <div style={{
+                        fontSize: '12px',
+                        opacity: 0.6,
+                        textAlign: 'center',
+                        marginTop: '12px'
+                      }}>
+                        Showing top {sortedData.length} out of {Object.keys(distribution).length} classes
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {Object.keys(summary.categorical_distributions).length > 6 && (
+              <p style={{
+                fontSize: '14px',
+                opacity: 0.7,
+                marginTop: '16px',
+                textAlign: 'center'
+              }}>
+                Showing distributions for first 6 categorical columns.
                 Full analysis available in EDA section.
               </p>
             )}

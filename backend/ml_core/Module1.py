@@ -31,6 +31,23 @@ def get_summary_statistics(df: pd.DataFrame) -> pd.DataFrame:
     return df.describe()
 
 
+def get_numerical_summary_statistics(df: pd.DataFrame) -> pd.DataFrame:
+    """Return summary statistics for numerical columns only."""
+    numerical_cols = df.select_dtypes(include=['number']).columns
+    if len(numerical_cols) == 0:
+        return pd.DataFrame()
+    return df[numerical_cols].describe()
+
+
+def get_categorical_class_distributions(df: pd.DataFrame) -> dict[str, pd.Series]:
+    """Return class distributions for categorical columns."""
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns
+    distributions = {}
+    for col in categorical_cols:
+        distributions[col] = df[col].value_counts(dropna=False)
+    return distributions
+
+
 def get_class_distribution(df: pd.DataFrame, target_column: str) -> pd.Series:
     """Return class counts for the chosen target column."""
     return df[target_column].value_counts(dropna=False)

@@ -170,7 +170,12 @@ def get_dataset_summary(dataset_id: str) -> Dict[str, Any]:
     df = get_dataset(dataset_id)
 
     try:
-        from ..ml_core.Module1 import get_shape, get_column_types, get_summary_statistics
+        from ..ml_core.Module1 import (
+            get_shape, 
+            get_column_types, 
+            get_numerical_summary_statistics,
+            get_categorical_class_distributions
+        )
 
         shape = get_shape(df)
         # Normalize shape to a list for JSON/Pydantic compatibility
@@ -180,12 +185,16 @@ def get_dataset_summary(dataset_id: str) -> Dict[str, Any]:
         # Convert dtype objects to simple strings
         dtypes = {col: str(dt) for col, dt in dtypes_raw.items()}
 
-        stats = get_summary_statistics(df).to_dict()
+        numerical_stats = get_numerical_summary_statistics(df).to_dict()
+        categorical_distributions = get_categorical_class_distributions(df)
+        # Convert Series to dict for JSON serialization
+        categorical_distributions = {col: dist.to_dict() for col, dist in categorical_distributions.items()}
 
         return {
             "shape": shape_list,
             "dtypes": dtypes,
-            "stats": stats
+            "numerical_stats": numerical_stats,
+            "categorical_distributions": categorical_distributions
         }
     except Exception as e:
         logger.error(f"Failed to generate summary for dataset {dataset_id}: {e}")
@@ -193,10 +202,7 @@ def get_dataset_summary(dataset_id: str) -> Dict[str, Any]:
         return {
             "shape": (len(df), len(df.columns)),
             "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()},
-            "stats": {
-                "count": len(df),
-                "columns": len(df.columns),
-                "memory_usage": df.memory_usage(deep=True).sum(),
-                "error": f"Advanced statistics unavailable: {str(e)}"
-            }
+            "numerical_stats": {},
+            "categorical_distributions": {},
+            "error": f"Advanced statistics unavailable: {str(e)}"
         }
