@@ -356,12 +356,9 @@ const SummaryComponent = () => {
                 <thead>
                   <tr>
                     <th>Statistic</th>
-                    {Object.keys(summary.numerical_stats).slice(0, 5).map(col => (
+                    {Object.keys(summary.numerical_stats).map(col => (
                       <th key={col}>{col}</th>
                     ))}
-                    {Object.keys(summary.numerical_stats).length > 5 && (
-                      <th>+{Object.keys(summary.numerical_stats).length - 5} more</th>
-                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -370,7 +367,7 @@ const SummaryComponent = () => {
                       summary.numerical_stats[Object.keys(summary.numerical_stats)[0]][stat] !== undefined && (
                         <tr key={stat}>
                           <td><strong>{stat}</strong></td>
-                          {Object.keys(summary.numerical_stats).slice(0, 5).map(col => (
+                          {Object.keys(summary.numerical_stats).map(col => (
                             <td key={col}>
                               {summary.numerical_stats[col][stat] !== undefined ?
                                 (typeof summary.numerical_stats[col][stat] === 'number' ?
@@ -379,26 +376,13 @@ const SummaryComponent = () => {
                                 '-'}
                             </td>
                           ))}
-                          {Object.keys(summary.numerical_stats).length > 5 && (
-                            <td style={{ opacity: 0.6 }}>...</td>
-                          )}
                         </tr>
                       )
                     ))}
                 </tbody>
               </table>
             </div>
-            {Object.keys(summary.numerical_stats).length > 5 && (
-              <p style={{
-                fontSize: '14px',
-                opacity: 0.7,
-                marginTop: '8px',
-                textAlign: 'center'
-              }}>
-                Showing statistics for first 5 numerical columns.
-                Full analysis available in EDA section.
-              </p>
-            )}
+
           </div>
         )}
 

@@ -223,15 +223,14 @@ const UploadComponent = () => {
                       fileInputRef.current.value = '';
                     }
                   }}
+                  className="button button-danger"
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    color: 'var(--danger-color)'
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    margin: 0
                   }}
                 >
-                  ✕
+                  Remove
                 </button>
               </div>
             </div>
@@ -277,8 +276,7 @@ const UploadComponent = () => {
         <div style={{
           marginTop: '24px',
           padding: '16px',
-          backgroundColor: 'var(--info-color)',
-          opacity: 0.1,
+          backgroundColor: 'rgba(33, 150, 243, 0.1)',
           borderRadius: '8px',
           fontSize: '14px',
           textAlign: 'center'
