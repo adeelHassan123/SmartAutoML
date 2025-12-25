@@ -52,7 +52,7 @@ def cleanup_inactive_sessions(
                 to_remove.append(dataset_id)
 
         # Remove datasets and associated data
-        from .dataset_service import DATA_DIR
+        from ..services.dataset_service import DATA_DIR
         removed_count = 0
         for dataset_id in to_remove:
             try:
