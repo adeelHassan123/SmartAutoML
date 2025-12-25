@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../App';
 import apiClient from '../api';
@@ -10,6 +11,7 @@ const EdaComponent = () => {
   const [edaData, setEdaData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [distributionView, setDistributionView] = useState('categorical');
   const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
@@ -52,6 +54,7 @@ const EdaComponent = () => {
     { id: 'overview', label: '📊 Overview', icon: '📊' },
     { id: 'missing', label: '🔍 Missing Values', icon: '🔍' },
     { id: 'outliers', label: '📈 Outliers', icon: '📈' },
+    { id: 'imbalance', label: '⚖️ Class Imbalance', icon: '⚖️' },
     { id: 'distributions', label: '📊 Distributions', icon: '📊' }
   ];
 
@@ -119,6 +122,8 @@ const EdaComponent = () => {
         return renderMissingValues();
       case 'outliers':
         return renderOutliers();
+      case 'imbalance':
+        return renderClassImbalance();
       case 'distributions':
         return renderDistributions();
       default:
@@ -135,6 +140,7 @@ const EdaComponent = () => {
           <ul style={{ marginTop: '12px' }}>
             <li><strong>Missing Values:</strong> {Object.keys(edaData.missing).length} columns affected</li>
             <li><strong>Outliers Detected:</strong> {edaData.outliers_iqr.length + edaData.outliers_zscore.length} features</li>
+            <li><strong>Class Imbalance:</strong> {edaData.class_imbalance ? edaData.class_imbalance.length : 0} features</li>
             <li><strong>Numerical Features:</strong> {Object.keys(edaData.numerical_distributions).length}</li>
             <li><strong>Categorical Features:</strong> {Object.keys(edaData.categorical_distributions).length}</li>
           </ul>
@@ -149,6 +155,9 @@ const EdaComponent = () => {
             )}
             {(edaData.outliers_iqr.length + edaData.outliers_zscore.length) > 0 && (
               <li>Addressing potential outliers</li>
+            )}
+            {edaData.class_imbalance && edaData.class_imbalance.length > 0 && (
+              <li>Handling class imbalance using resampling or class weights</li>
             )}
             <li>Reviewing feature distributions for insights</li>
           </ul>
@@ -199,56 +208,56 @@ const EdaComponent = () => {
             </thead>
             <tbody>
               {Object.entries(edaData.missing)
-                .sort(([,a], [,b]) => b.missing_pct - a.missing_pct)
+                .sort(([, a], [, b]) => b.missing_pct - a.missing_pct)
                 .map(([column, data]) => (
-                <tr key={column}>
-                  <td><strong>{column}</strong></td>
-                  <td>{data.missing_count.toLocaleString()}</td>
-                  <td>
-                    <span style={{
-                      color: data.missing_pct > 50 ? 'var(--danger-color)' :
-                             data.missing_pct > 20 ? 'var(--warning-color)' :
-                             'var(--success-color)',
-                      fontWeight: 'bold'
-                    }}>
-                      {data.missing_pct.toFixed(2)}%
-                    </span>
-                  </td>
-                  <td>
-                    {data.missing_pct > 50 ? (
+                  <tr key={column}>
+                    <td><strong>{column}</strong></td>
+                    <td>{data.missing_count.toLocaleString()}</td>
+                    <td>
                       <span style={{
-                        backgroundColor: 'var(--danger-color)',
-                        color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: '8px',
-                        fontSize: '12px'
+                        color: data.missing_pct > 50 ? 'var(--danger-color)' :
+                          data.missing_pct > 20 ? 'var(--warning-color)' :
+                            'var(--success-color)',
+                        fontWeight: 'bold'
                       }}>
-                        Critical
+                        {data.missing_pct.toFixed(2)}%
                       </span>
-                    ) : data.missing_pct > 20 ? (
-                      <span style={{
-                        backgroundColor: 'var(--warning-color)',
-                        color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}>
-                        High
-                      </span>
-                    ) : (
-                      <span style={{
-                        backgroundColor: 'var(--info-color)',
-                        color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}>
-                        Low
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      {data.missing_pct > 50 ? (
+                        <span style={{
+                          backgroundColor: 'var(--danger-color)',
+                          color: 'white',
+                          padding: '4px 8px',
+                          borderRadius: '8px',
+                          fontSize: '12px'
+                        }}>
+                          Critical
+                        </span>
+                      ) : data.missing_pct > 20 ? (
+                        <span style={{
+                          backgroundColor: 'var(--warning-color)',
+                          color: 'white',
+                          padding: '4px 8px',
+                          borderRadius: '8px',
+                          fontSize: '12px'
+                        }}>
+                          High
+                        </span>
+                      ) : (
+                        <span style={{
+                          backgroundColor: 'var(--info-color)',
+                          color: 'white',
+                          padding: '4px 8px',
+                          borderRadius: '8px',
+                          fontSize: '12px'
+                        }}>
+                          Low
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -367,160 +376,280 @@ const EdaComponent = () => {
     </div>
   );
 
+  const renderClassImbalance = () => (
+    <div className="slide-in">
+      <div className="flex-between" style={{ marginBottom: '24px' }}>
+        <h3 style={{ color: 'var(--primary-color)', margin: 0 }}>
+          ⚖️ Class Imbalance Analysis
+        </h3>
+        {edaData.class_imbalance && edaData.class_imbalance.length > 0 && (
+          <span style={{
+            backgroundColor: 'var(--warning-color)',
+            color: 'white',
+            padding: '4px 12px',
+            borderRadius: '12px',
+            fontSize: '14px'
+          }}>
+            {edaData.class_imbalance.length} imbalanced features
+          </span>
+        )}
+      </div>
+
+      {(!edaData.class_imbalance || edaData.class_imbalance.length === 0) ? (
+        <div className="success">
+          <h4>✅ No Significant Class Imbalance</h4>
+          <p>No categorical features show extreme class dominance (&gt;75%).</p>
+        </div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Dominant Class</th>
+                <th>Dominance %</th>
+                <th>Unique Classes</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {edaData.class_imbalance.map((item, index) => (
+                <tr key={index}>
+                  <td><strong>{item.column}</strong></td>
+                  <td>{item.top_class}</td>
+                  <td>
+                    <span style={{
+                      fontWeight: 'bold',
+                      color: item.dominance_pct > 90 ? 'var(--danger-color)' : 'var(--warning-color)'
+                    }}>
+                      {item.dominance_pct}%
+                    </span>
+                  </td>
+                  <td>{item.unique_classes}</td>
+                  <td>
+                    {item.dominance_pct > 90 ? (
+                      <span style={{
+                        backgroundColor: 'var(--danger-color)',
+                        color: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}>
+                        Critical
+                      </span>
+                    ) : (
+                      <span style={{
+                        backgroundColor: 'var(--warning-color)',
+                        color: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}>
+                        High
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="info" style={{ marginTop: '20px' }}>
+            <p><strong>Recommendation:</strong> For features with critical imbalance (&gt;90%), consider using techniques like oversampling (SMOTE) or undersampling if this feature is the target variable.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const renderDistributions = () => (
     <div className="slide-in">
       <div className="flex-between" style={{ marginBottom: '24px' }}>
         <h3 style={{ color: 'var(--primary-color)', margin: 0 }}>
           📊 Feature Distributions
         </h3>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <span style={{
-            backgroundColor: 'var(--success-color)',
-            color: 'white',
-            padding: '4px 12px',
-            borderRadius: '12px',
-            fontSize: '14px'
-          }}>
-            Numerical: {Object.keys(edaData.numerical_distributions).length}
-          </span>
-          <span style={{
-            backgroundColor: 'var(--info-color)',
-            color: 'white',
-            padding: '4px 12px',
-            borderRadius: '12px',
-            fontSize: '14px'
-          }}>
-            Categorical: {Object.keys(edaData.categorical_distributions).length}
-          </span>
+
+        {/* Toggle Switch */}
+        <div style={{
+          display: 'flex',
+          backgroundColor: 'var(--card-bg)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '20px',
+          overflow: 'hidden'
+        }}>
+          <button
+            onClick={() => setDistributionView('categorical')}
+            style={{
+              padding: '8px 16px',
+              border: 'none',
+              backgroundColor: distributionView === 'categorical' ? 'var(--info-color)' : 'transparent',
+              color: distributionView === 'categorical' ? 'white' : 'var(--text-color)',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '14px',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Categorical ({Object.keys(edaData.categorical_distributions).length})
+          </button>
+          <button
+            onClick={() => setDistributionView('numerical')}
+            style={{
+              padding: '8px 16px',
+              border: 'none',
+              backgroundColor: distributionView === 'numerical' ? 'var(--success-color)' : 'transparent',
+              color: distributionView === 'numerical' ? 'white' : 'var(--text-color)',
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '14px',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Numerical ({Object.keys(edaData.numerical_distributions).length})
+          </button>
         </div>
       </div>
 
-      {/* Numerical Distributions */}
-      {Object.keys(edaData.numerical_distributions).length > 0 && (
-        <div style={{ marginBottom: '32px' }}>
-          <h4 style={{ color: 'var(--success-color)', marginBottom: '16px' }}>
-            🔢 Numerical Features
-          </h4>
-          <div className="grid grid-2">
-            {Object.entries(edaData.numerical_distributions).map(([column, data]) => (
-              <div key={column} style={{
-                backgroundColor: 'var(--card-bg)',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                marginBottom: '16px'
-              }}>
-                <h5 style={{
-                  color: 'var(--primary-color)',
-                  marginBottom: '12px',
-                  fontSize: '16px'
-                }}>
-                  {column}
-                </h5>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'end',
-                  height: '60px',
-                  gap: '2px'
-                }}>
-                  {data.counts.map((count, index) => {
-                    const maxCount = Math.max(...data.counts);
-                    const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
-                    return (
-                      <div
-                        key={index}
-                        style={{
-                          width: '8px',
-                          backgroundColor: 'var(--primary-color)',
-                          borderRadius: '2px 2px 0 0',
-                          height: `${Math.max(height, 2)}%`,
-                          transition: 'height 0.3s ease'
-                        }}
-                        title={`Bin ${index + 1}: ${count} values`}
-                      />
-                    );
-                  })}
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  opacity: 0.7,
-                  marginTop: '8px',
-                  textAlign: 'center'
-                }}>
-                  Distribution histogram
-                </div>
+      {/* Categorical Distributions */}
+      {distributionView === 'categorical' && (
+        <>
+          {Object.keys(edaData.categorical_distributions).length > 0 ? (
+            <div>
+              <h4 style={{ color: 'var(--info-color)', marginBottom: '16px' }}>
+                🏷️ Categorical Features
+              </h4>
+              <div className="grid grid-2">
+                {Object.entries(edaData.categorical_distributions).map(([column, data]) => (
+                  <div key={column} style={{
+                    backgroundColor: 'var(--card-bg)',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    marginBottom: '16px'
+                  }}>
+                    <h5 style={{
+                      color: 'var(--primary-color)',
+                      marginBottom: '12px',
+                      fontSize: '16px'
+                    }}>
+                      {column}
+                    </h5>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart
+                        data={data.labels.slice(0, 10).map((l, i) => ({ name: l, value: data.counts[i] }))}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                        <XAxis type="number" tick={{ fontSize: 10 }} />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          tick={{ fontSize: 10 }}
+                          width={80}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'var(--card-bg)',
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-color)'
+                          }}
+                        />
+                        <Bar dataKey="value" fill="var(--info-color)" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    {data.labels.length > 10 && (
+                      <p style={{ fontSize: '12px', opacity: 0.7, marginTop: '8px', textAlign: 'center' }}>
+                        Showing top 10 categories ({data.labels.length - 10} more...)
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          ) : (
+            <div className="info">
+              <p>No categorical features found in this dataset.</p>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Categorical Distributions */}
-      {Object.keys(edaData.categorical_distributions).length > 0 && (
-        <div>
-          <h4 style={{ color: 'var(--info-color)', marginBottom: '16px' }}>
-            🏷️ Categorical Features
-          </h4>
-          <div className="grid grid-2">
-            {Object.entries(edaData.categorical_distributions).map(([column, data]) => (
-              <div key={column} style={{
-                backgroundColor: 'var(--card-bg)',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                marginBottom: '16px'
-              }}>
-                <h5 style={{
-                  color: 'var(--primary-color)',
-                  marginBottom: '12px',
-                  fontSize: '16px'
-                }}>
-                  {column}
-                </h5>
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="table" style={{ fontSize: '14px' }}>
-                    <thead>
-                      <tr>
-                        <th>Category</th>
-                        <th>Count</th>
-                        <th>%</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.labels.slice(0, 8).map((label, index) => {
-                        const total = data.counts.reduce((a, b) => a + b, 0);
-                        const percentage = ((data.counts[index] / total) * 100).toFixed(1);
-                        return (
-                          <tr key={index}>
-                            <td style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {label}
-                            </td>
-                            <td>{data.counts[index].toLocaleString()}</td>
-                            <td>{percentage}%</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  {data.labels.length > 8 && (
-                    <p style={{ fontSize: '12px', opacity: 0.7, marginTop: '8px' }}>
-                      Showing top 8 categories ({data.labels.length - 8} more...)
-                    </p>
-                  )}
-                </div>
+      {/* Numerical Distributions */}
+      {distributionView === 'numerical' && (
+        <>
+          {Object.keys(edaData.numerical_distributions).length > 0 ? (
+            <div style={{ marginBottom: '32px' }}>
+              <h4 style={{ color: 'var(--success-color)', marginBottom: '16px' }}>
+                🔢 Numerical Features
+              </h4>
+              <div className="grid grid-2">
+                {Object.entries(edaData.numerical_distributions).map(([column, data]) => (
+                  <div key={column} style={{
+                    backgroundColor: 'var(--card-bg)',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    marginBottom: '16px'
+                  }}>
+                    <h5 style={{
+                      color: 'var(--primary-color)',
+                      marginBottom: '12px',
+                      fontSize: '16px'
+                    }}>
+                      {column}
+                    </h5>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={data.counts.map((c, i) => ({
+                        name: i,
+                        range: `${data.bins[i].toFixed(1)} - ${data.bins[i + 1]?.toFixed(1) || 'End'}`,
+                        value: c
+                      }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'var(--card-bg)',
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-color)'
+                          }}
+                          labelFormatter={(label, payload) => {
+                            if (payload && payload.length > 0) {
+                              return `Range: ${payload[0].payload.range}`;
+                            }
+                            return `Bin: ${label}`;
+                          }}
+                        />
+                        <Bar dataKey="value" fill="var(--primary-color)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <div style={{
+                      fontSize: '12px',
+                      opacity: 0.7,
+                      marginTop: '8px',
+                      textAlign: 'center'
+                    }}>
+                      Distribution histogram
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          ) : (
+            <div className="info">
+              <p>No numerical features found in this dataset.</p>
+            </div>
+          )}
+        </>
       )}
 
       {Object.keys(edaData.numerical_distributions).length === 0 &&
-       Object.keys(edaData.categorical_distributions).length === 0 && (
-        <div className="warning">
-          <h4>⚠️ No Distribution Data Available</h4>
-          <p>Unable to generate distribution visualizations for this dataset.</p>
-        </div>
-      )}
+        Object.keys(edaData.categorical_distributions).length === 0 && (
+          <div className="warning">
+            <h4>⚠️ No Distribution Data Available</h4>
+            <p>Unable to generate distribution visualizations for this dataset.</p>
+          </div>
+        )}
     </div>
   );
 

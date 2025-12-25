@@ -17,7 +17,7 @@ const IssuesComponent = () => {
   // Fetch actual columns from dataset on component mount (only once)
   useEffect(() => {
     let isMounted = true;
-    
+
     const fetchDatasetInfo = async () => {
       setFetchingColumns(true);
       try {
