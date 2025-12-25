@@ -230,7 +230,7 @@ const ReportComponent = () => {
                       {children}
                     </p>
                   ),
-                  ul: ({ ordered, ...props }) => (
+                  ul: ({ node, children, ...props }) => (
                     <ul
                       style={{
                         marginLeft: '30px',
@@ -239,9 +239,11 @@ const ReportComponent = () => {
                         color: 'var(--text-color, #333)'
                       }}
                       {...props}
-                    />
+                    >
+                      {children}
+                    </ul>
                   ),
-                  ol: ({ ordered, ...props }) => (
+                  ol: ({ node, children, ...props }) => (
                     <ol
                       style={{
                         marginLeft: '30px',
@@ -250,16 +252,20 @@ const ReportComponent = () => {
                         color: 'var(--text-color, #333)'
                       }}
                       {...props}
-                    />
+                    >
+                      {children}
+                    </ol>
                   ),
-                  li: ({ ordered, ...props }) => (
+                  li: ({ node, children, ...props }) => (
                     <li
                       style={{
                         marginBottom: '8px',
                         lineHeight: '1.6'
                       }}
                       {...props}
-                    />
+                    >
+                      {children}
+                    </li>
                   ),
                   code: ({ children, ...props }) => (
                     <code
@@ -326,7 +332,7 @@ const ReportComponent = () => {
                       </table>
                     </div>
                   ),
-                  th: ({ isHeader, ...props }) => (
+                  th: ({ node, children, ...props }) => (
                     <th
                       style={{
                         backgroundColor: 'var(--table-header-bg, #f8f9fa)',
@@ -338,9 +344,11 @@ const ReportComponent = () => {
                         color: 'var(--text-color, #333)'
                       }}
                       {...props}
-                    />
+                    >
+                      {children}
+                    </th>
                   ),
-                  td: ({ isHeader, ...props }) => (
+                  td: ({ node, children, ...props }) => (
                     <td
                       style={{
                         padding: '10px 15px',
@@ -349,7 +357,9 @@ const ReportComponent = () => {
                         color: 'var(--text-color, #333)'
                       }}
                       {...props}
-                    />
+                    >
+                      {children}
+                    </td>
                   ),
                 }}
               >
