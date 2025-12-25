@@ -54,7 +54,7 @@ def get_dataset_issues(dataset_id: str, target_column: str) -> Dict[str, Any]:
 
         # Run the actual issues detection
         try:
-            issues = detect_issues(df, target_column)
+            issues = detect_issues(df, target_column=target_column)
 
             # Add target column validation status
             issues["target_column_validated"] = True
