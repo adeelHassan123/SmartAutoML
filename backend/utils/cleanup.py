@@ -52,15 +52,21 @@ def cleanup_inactive_sessions(
                 to_remove.append(dataset_id)
 
         # Remove datasets and associated data
+        from .dataset_service import DATA_DIR
         removed_count = 0
         for dataset_id in to_remove:
             try:
+                # Remove from disk
+                file_path = DATA_DIR / f"{dataset_id}.csv"
+                if file_path.exists():
+                    file_path.unlink()
+                
                 datasets.pop(dataset_id, None)
                 preprocessed.pop(dataset_id, None)
                 trained_models.pop(dataset_id, None)
                 last_access.pop(dataset_id, None)
                 removed_count += 1
-                logger.info(f"Removed inactive dataset: {dataset_id}")
+                logger.info(f"Removed inactive dataset: {dataset_id} (disk and memory)")
             except Exception as e:
                 logger.error(f"Error removing dataset {dataset_id}: {e}")
 

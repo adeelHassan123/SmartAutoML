@@ -21,6 +21,19 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT_DIR / 'data' / 'datasets'
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+def clear_all_datasets():
+    """Remove all dataset files from disk and clear in-memory storage."""
+    import shutil
+    try:
+        if DATA_DIR.exists():
+            shutil.rmtree(DATA_DIR)
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            datasets.clear()
+            last_access.clear()
+            logger.info("Cleared all datasets from disk and memory")
+    except Exception as e:
+        logger.error(f"Failed to clear datasets: {e}")
+
 
 def _load_dataset_from_disk(dataset_id: str) -> pd.DataFrame | None:
     file_path = DATA_DIR / f"{dataset_id}.csv"

@@ -1,14 +1,16 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import uvicorn
+import os
 import logging
+from pathlib import Path
 
 try:
     from .api.routers import router
     from .utils.rate_limiter import RateLimitMiddleware
     from .utils.cleanup import cleanup_inactive_sessions
-    from .services.dataset_service import datasets, last_access
+    from .services.dataset_service import datasets, last_access, clear_all_datasets
     from .services.preprocess_service import preprocessed
     from .services.train_service import trained_models
 except Exception as e:
@@ -54,6 +56,24 @@ if router is not None:
     logger.info("API router successfully registered")
 else:
     logger.error("CRITICAL: API router is None - no routes will be available!")
+
+# Startup cleanup
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Application starting up... running initial cleanup")
+    try:
+        if clear_all_datasets is not None:
+            clear_all_datasets()
+    except Exception as e:
+        logger.error(f"Startup cleanup failed: {e}")
+
+# Static file serving for deployment
+frontend_build_path = Path(__file__).resolve().parent.parent / 'frontend' / 'build'
+if frontend_build_path.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_build_path), html=True), name="static")
+    logger.info(f"Serving frontend from {frontend_build_path}")
+else:
+    logger.warning(f"Frontend build directory not found at {frontend_build_path}. Static files will not be served.")
 
 # Periodic cleanup (in production, use a proper scheduler)
 @app.middleware("http")
