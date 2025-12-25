@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: smartautoml-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn backend.main:app -k uvicorn.workers.UvicornWorker
+    autoDeploy: true

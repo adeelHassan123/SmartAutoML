@@ -37,10 +37,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
+# Enable CORS (Vercel frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=["*"],   # replace with Vercel URL later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,13 +67,13 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Startup cleanup failed: {e}")
 
-# Static file serving for deployment
-frontend_build_path = Path(__file__).resolve().parent.parent / 'frontend' / 'build'
-if frontend_build_path.exists():
-    app.mount("/", StaticFiles(directory=str(frontend_build_path), html=True), name="static")
-    logger.info(f"Serving frontend from {frontend_build_path}")
-else:
-    logger.warning(f"Frontend build directory not found at {frontend_build_path}. Static files will not be served.")
+# # Static file serving for deployment
+# frontend_build_path = Path(__file__).resolve().parent.parent / 'frontend' / 'build'
+# if frontend_build_path.exists():
+#     app.mount("/", StaticFiles(directory=str(frontend_build_path), html=True), name="static")
+#     logger.info(f"Serving frontend from {frontend_build_path}")
+# else:
+#     logger.warning(f"Frontend build directory not found at {frontend_build_path}. Static files will not be served.")
 
 # Periodic cleanup (in production, use a proper scheduler)
 @app.middleware("http")
