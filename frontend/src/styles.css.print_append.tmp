@@ -1,0 +1,118 @@
+
+/* Print Styles */
+@media print {
+  /* Hide non-essential elements */
+  .header,
+  .footer,
+  .theme-toggle,
+  .button,
+  .breadcrumbs,
+  .card-header button,
+  .card-subtitle {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  .app,
+  .app-content,
+  .container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: white !important;
+  }
+
+  /* Styling for the report card */
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Report Specifics */
+  .card-header {
+    border-bottom: 2px solid #333 !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .card-title {
+    font-size: 24pt !important;
+    color: black !important;
+  }
+
+  .report-container {
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    font-size: 12pt !important;
+    color: black !important;
+    background-color: white !important;
+  }
+
+  /* Reset Markdown Elements for Print */
+  div.markdown-content h1 {
+    font-size: 20pt !important;
+    border-bottom: 2px solid #000 !important;
+    color: #000 !important;
+    margin-top: 20px !important;
+  }
+
+  div.markdown-content h2 {
+    font-size: 16pt !important;
+    border-bottom: 1px solid #000 !important;
+    color: #000 !important;
+    margin-top: 15px !important;
+  }
+
+  div.markdown-content h3 {
+    font-size: 14pt !important;
+    color: #000 !important;
+  }
+
+  div.markdown-content p,
+  div.markdown-content li {
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    color: #000 !important;
+  }
+
+  /* Ensure tables print nicely */
+  div.markdown-content table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 1px solid #000 !important;
+    font-size: 10pt !important;
+    page-break-inside: auto;
+  }
+  
+  div.markdown-content tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  div.markdown-content th,
+  div.markdown-content td {
+    border: 1px solid #000 !important;
+    padding: 8px !important;
+    color: #000 !important;
+  }
+
+  div.markdown-content th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  /* Code blocks */
+  div.markdown-content pre,
+  div.markdown-content code {
+    background-color: #f5f5f5 !important;
+    border: 1px solid #ccc !important;
+    color: #000 !important;
+    white-space: pre-wrap !important; /* Wrap code on print */
+  }
+}

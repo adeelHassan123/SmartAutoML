@@ -1,0 +1,109 @@
+# 📋 AutoML Analysis Summary
+
+*Report generated on 2025-12-26 00:10:36*
+
+## Dataset Summary
+
+- **Size:** 100 rows × 4 columns
+
+
+## Best Model Performance
+
+- **Top Model:** Logistic Regression
+- **Accuracy:** 86.7%
+- **Models Evaluated:** 1
+
+## 📊 Dataset Overview
+
+**Dataset Size:** 100 rows × 4 columns
+
+**Data Types:**
+| Type | Count |
+|------|-------|
+| int64 | 2 |
+| float64 | 2 |
+
+**Missing Values:** None detected ✅
+
+### 📈 Numerical Features Summary
+
+| Statistic | Unnamed: 0 | cgpa | iq | placement |
+|-----------|---|---|---|---|
+| Count | 100.00 | 100.00 | 100.00 | 100.00 |
+| Mean | 49.50 | 5.99 | 123.58 | 0.50 |
+| Std | 29.01 | 1.14 | 39.94 | 0.50 |
+| Min | 0.00 | 3.30 | 37.00 | 0.00 |
+| 25% | 24.75 | 5.07 | 101.50 | 0.00 |
+| 50% | 49.50 | 6.00 | 127.50 | 0.50 |
+| 75% | 74.25 | 6.90 | 149.00 | 1.00 |
+| Max | 99.00 | 8.50 | 233.00 | 1.00 |
+
+## 🔍 Exploratory Data Analysis
+
+### Feature Correlations
+
+### Outlier Detection (IQR Method)
+
+Detected 1 features with potential outliers:
+
+
+- **iq:** 2 outliers (0.0%)
+
+## ⚠️ Data Quality Issues
+
+✅ No significant data quality issues detected.
+
+## 🔧 Preprocessing Applied
+
+## 🤖 Model Performance Comparison
+
+Compared 1 different machine learning models:
+
+
+| Model | Accuracy | Precision | Recall | F1 Score | Roc Auc | Training Time |
+|-------|----------|-----------|--------|----------|---------|---------------|
+| Logistic Regression | 86.7% | 92.3% | 80.0% | 85.7% | 93.8% | 5.40s |
+
+### 🏆 Top Performing Models
+
+#### 🥇 Logistic Regression
+
+**Accuracy:** 86.7%
+
+**Why this model performed well:**
+- Strong cross-validation stability (0.9427)
+
+**Key Metrics:** F1 Score: 0.8571, Roc Auc: 0.9378, Training Time: 5.40s
+
+## 📊 Model Ranking
+
+Models ranked by performance (higher scores are better):
+
+
+| Rank | Model | Score |
+|------|-------|-------|
+| 1 | 🥇 Logistic Regression | 86.7% |
+
+## 💡 Recommendations
+
+### 🎯 Recommended Model
+
+**Logistic Regression** with 86.7% accuracy
+
+This model showed the best balance of performance, stability, and efficiency.
+
+### 📋 Next Steps
+
+1. **Deploy the recommended model** for production use
+2. **Monitor performance** on new data regularly
+3. **Consider retraining** if data patterns change significantly
+4. **Validate predictions** on a holdout test set before deployment
+
+## 🔧 Technical Details
+
+### Detailed Model Metrics
+
+
+| Model | Accuracy | F1-Score | ROC-AUC | CV Mean | Training Time |
+|-------|----------|----------|---------|---------|---------------|
+| Logistic Regression | 86.7% | 0.8571 | 0.9378 | 0.9427 | 5.40s |

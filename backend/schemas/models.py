@@ -52,6 +52,7 @@ class PreprocessRequest(BaseModel):
     outlier_action: str = Field('no_action', pattern=r'^(no_action|remove|capping)$')
     outlier_method: str = Field('iqr', pattern=r'^(iqr|zscore)$')
     target_column: str = Field(..., min_length=1)
+    test_size: float = Field(0.2, ge=0.1, le=0.5, description="Fraction of dataset to use for testing (0.1-0.5)")
 
     @validator('numeric_fill_value')
     def validate_numeric_fill_value(cls, v, values):

@@ -17,7 +17,7 @@ const IssuesComponent = () => {
   // Fetch actual columns from dataset on component mount (only once)
   useEffect(() => {
     let isMounted = true;
-
+    
     const fetchDatasetInfo = async () => {
       setFetchingColumns(true);
       try {
@@ -106,7 +106,27 @@ const IssuesComponent = () => {
   const renderIssues = () => {
     if (!issues) return null;
 
-    const issueCount = Object.keys(issues).length;
+    // Check for "findings" array (preferred structured format)
+    const findings = issues.findings || [];
+    const hasFindings = Array.isArray(findings) && findings.length > 0;
+    
+    // Fallback for older API or specific errors
+    // distinct keys that represent actual issue categories (excluding metadata)
+    const rawKeys = Object.keys(issues).filter(k => 
+      !['findings', 'target_column_validated', 'target_column_info', 'target_column_validation', 'recommendations', 'severity', 'detection_error', 'basic_analysis'].includes(k)
+    );
+
+    // Calculate total count
+    let issueCount = 0;
+    if (hasFindings) {
+      issueCount = findings.length;
+    } else {
+      // Basic count from keys + target validation error if any
+      issueCount = rawKeys.length + (issues.target_column_validation ? 1 : 0);
+    }
+    
+    // Check for target column specific issues (often critical blockers)
+    const targetIssue = issues.target_column_validation;
 
     return (
       <div className="slide-in">
@@ -121,20 +141,47 @@ const IssuesComponent = () => {
               <div style={{
                 fontSize: '32px',
                 fontWeight: 'bold',
-                color: issueCount === 0 ? 'var(--success-color)' : 'var(--warning-color)'
+                color: (issueCount === 0 && !targetIssue) ? 'var(--success-color)' : 'var(--warning-color)'
               }}>
-                {issueCount}
+                {issueCount + (targetIssue && !hasFindings ? 1 : 0)}
               </div>
               <div style={{ fontSize: '14px', opacity: 0.8 }}>
-                {issueCount === 1 ? 'Issue' : 'Issues'}
+                Issues Detected
               </div>
             </div>
           </div>
         </div>
 
-        {issueCount === 0 ? (
+        {/* Target Column Critical Error (if any) */}
+        {targetIssue && (
+          <div className="warning" style={{ 
+            borderLeft: '4px solid var(--danger-color)',
+            backgroundColor: '#fff5f5' 
+          }}>
+            <h4 style={{ color: 'var(--danger-color)' }}>🚫 Target Column Issue</h4>
+            <p className="card-subtitle">{targetIssue}</p>
+            {issues.recommendations && (
+              <ul style={{ marginTop: '12px' }}>
+                {issues.recommendations.map((rec, i) => (
+                  <li key={i}>{rec}</li>
+                ))}
+              </ul>
+            )}
+            <div style={{ marginTop: '16px' }}>
+              <button 
+                className="button button-sm" 
+                onClick={() => setTargetColumn('')}
+                style={{ backgroundColor: 'var(--danger-color)', color: 'white' }}
+              >
+                Choose Different Target
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(issueCount === 0 && !targetIssue) ? (
           <div className="success">
-            <h4>✅ No Issues Detected</h4>
+            <h4>✅ No Data Quality Issues Detected</h4>
             <p>Your dataset appears to be in excellent condition for machine learning!</p>
             <div style={{ marginTop: '16px' }}>
               <h5>🎯 Recommendations:</h5>
@@ -146,37 +193,103 @@ const IssuesComponent = () => {
             </div>
           </div>
         ) : (
-          <div className="warning">
-            <h4>⚠️ Data Quality Issues Found</h4>
-            <p>The following issues may impact model performance:</p>
+          <div style={{ marginTop: '24px' }}>
+            {hasFindings ? (
+              // NEW: Structured Findings Display
+              <div className="issues-grid">
+                {findings.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className="card"
+                    style={{ 
+                      marginBottom: '16px',
+                      borderLeft: `5px solid ${
+                        item.severity === 'critical' ? 'var(--danger-color)' : 
+                        item.severity === 'warning' ? 'var(--warning-color)' : 
+                        'var(--info-color)'
+                      }`
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {item.severity === 'critical' ? '🔴' : item.severity === 'warning' ? '🟡' : 'ℹ️'}
+                        {item.title}
+                      </h4>
+                      <span style={{ 
+                        fontSize: '12px', 
+                        textTransform: 'uppercase', 
+                        fontWeight: 'bold',
+                        color: 'var(--text-secondary)',
+                        backgroundColor: 'var(--background-color)',
+                        padding: '2px 8px',
+                        borderRadius: '4px'
+                      }}>
+                        {item.severity}
+                      </span>
+                    </div>
 
-            <div style={{ marginTop: '16px' }}>
-              {/* Display issues in a structured way */}
-              <div style={{ backgroundColor: 'rgba(255, 152, 0, 0.1)', padding: '16px', borderRadius: '8px' }}>
-                <pre style={{
-                  whiteSpace: 'pre-wrap',
-                  fontSize: '14px',
-                  fontFamily: 'monospace',
-                  backgroundColor: 'var(--card-bg)',
-                  padding: '12px',
-                  borderRadius: '4px',
-                  border: '1px solid var(--border-color)',
-                  maxHeight: '300px',
-                  overflowY: 'auto'
-                }}>
-                  {JSON.stringify(issues, null, 2)}
-                </pre>
-              </div>
+                    <p style={{ color: 'var(--text-color)', marginBottom: '16px' }}>
+                      {item.description}
+                    </p>
 
-              <div style={{ marginTop: '16px' }}>
-                <h5>💡 Suggested Actions:</h5>
-                <ul style={{ textAlign: 'left', marginTop: '8px' }}>
-                  <li>Review preprocessing options to address these issues</li>
-                  <li>Consider data cleaning or feature engineering</li>
-                  <li>Evaluate if these issues significantly impact your use case</li>
-                  <li>Consult domain experts for data quality decisions</li>
-                </ul>
+                    {/* Affected Columns */}
+                    {item.affected_columns && item.affected_columns.length > 0 && (
+                      <div style={{ marginBottom: '16px' }}>
+                        <strong style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>AFFECTED COLUMNS:</strong>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                          {item.affected_columns.slice(0, 5).map(col => (
+                            <span key={col} style={{ 
+                              backgroundColor: 'rgba(0,0,0,0.05)', 
+                              padding: '2px 8px', 
+                              borderRadius: '4px',
+                              fontSize: '13px',
+                              fontFamily: 'monospace'
+                            }}>
+                              {col}
+                            </span>
+                          ))}
+                          {item.affected_columns.length > 5 && (
+                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', alignSelf: 'center' }}>
+                              +{item.affected_columns.length - 5} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Suggested Fixes */}
+                    {item.suggested_fixes && item.suggested_fixes.length > 0 && (
+                      <div style={{ 
+                        backgroundColor: 'rgba(240, 246, 255, 0.5)', 
+                        padding: '12px', 
+                        borderRadius: '6px',
+                        border: '1px solid rgba(0,0,0,0.05)'
+                      }}>
+                        <strong style={{ fontSize: '13px', color: 'var(--primary-color)' }}>💡 SUGGESTED ACTIONS:</strong>
+                        <ul style={{ margin: '8px 0 0 20px', fontSize: '14px', color: '#444' }}>
+                          {item.suggested_fixes.map((fix, i) => (
+                            <li key={i}>{fix}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
+            ) : (
+              // OLD: Fallback Display (for backward compat if findings not present)
+              <div className="issues-grid">
+                {rawKeys.map((key, index) => (
+                   <div key={index} className="card" style={{ marginBottom: '12px', borderLeft: '4px solid var(--warning-color)' }}>
+                      <h5>⚠️ {key.replace(/_/g, ' ')}</h5>
+                      <p>Full issue details available in EDA report.</p>
+                   </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="info" style={{ marginTop: '24px' }}>
+               <p><strong>Note:</strong> You can address many of these issues in the <strong>Preprocessing</strong> step using tools like "Imputation" and "Outlier Removal".</p>
             </div>
           </div>
         )}

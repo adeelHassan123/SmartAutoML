@@ -160,6 +160,7 @@ def train_and_optimize_models(
 
     cw = 'balanced' if class_weight_auto else None
     models: dict[str, tuple[Any, dict[str, Any]]] = {
+        'Rule-Based': (DummyClassifier(strategy='most_frequent'), {}),
         'Logistic Regression': (LogisticRegression(max_iter=2000, random_state=random_state, class_weight=cw), {
             'C': [0.01, 0.1, 1, 10],
             'solver': ['liblinear']

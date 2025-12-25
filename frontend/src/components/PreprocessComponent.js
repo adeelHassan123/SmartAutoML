@@ -19,7 +19,8 @@ const PreprocessComponent = () => {
     encoding: 'onehot',
     outlier_action: 'no_action',
     outlier_method: 'iqr',
-    target_column: targetColumn
+    target_column: targetColumn,
+    test_size: 0.2
   });
 
   const [result, setResult] = useState(null);
@@ -220,6 +221,26 @@ const PreprocessComponent = () => {
                 <div className="info" style={{ marginTop: '16px' }}>
                   <strong>💡 Scaling Recommendation:</strong> Standard Scaler works well for most cases.
                   Use Min-Max if you need bounded values [0,1].
+                </div>
+
+                <div className="form-group" style={{ marginTop: '24px' }}>
+                  <label className="label">
+                    Test Set Size: {parseFloat(formData.test_size).toFixed(2)} ({Math.round(formData.test_size * 100)}%)
+                  </label>
+                  <input
+                    type="range"
+                    name="test_size"
+                    min="0.1"
+                    max="0.5"
+                    step="0.05"
+                    value={formData.test_size}
+                    onChange={handleInputChange}
+                    style={{ width: '100%' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#666' }}>
+                    <span>10%</span>
+                    <span>50%</span>
+                  </div>
                 </div>
               </div>
             </div>

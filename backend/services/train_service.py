@@ -28,13 +28,14 @@ def start_training_background(dataset_id: str, request: TrainRequest):
         processed_data = get_preprocessed_data(dataset_id)
         df_processed = processed_data['data']
         target_column = processed_data['target_column']
+        test_size = processed_data.get('test_size', 0.2)
 
         # Split data (attempt stratified split; fall back to random split on failure)
         try:
             X_train, X_test, y_train, y_test = split_train_test_stratified(
                 df_processed,
                 target_column,
-                test_size=0.2,
+                test_size=test_size,
                 random_state=42
             )
         except Exception as e:

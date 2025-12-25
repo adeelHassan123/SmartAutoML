@@ -72,7 +72,8 @@ def apply_preprocessing(dataset_id: str, request: PreprocessRequest) -> Dict[str
         preprocessed[dataset_id] = {
             'data': df_processed,
             'preprocessor': preprocessor,
-            'target_column': request.target_column
+            'target_column': request.target_column,
+            'test_size': request.test_size
         }
 
         # Create preview (first 10 rows)
