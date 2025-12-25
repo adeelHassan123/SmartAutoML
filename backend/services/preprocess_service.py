@@ -30,7 +30,7 @@ def apply_preprocessing(dataset_id: str, request: PreprocessRequest) -> Dict[str
         df_cleaned, _ = apply_outlier_handling(
             df,
             method=request.outlier_method,
-            action=request.outlier_action,
+            action=_map_outlier_action(request.outlier_action),
             exclude_columns=[request.target_column]
         )
 
@@ -99,8 +99,17 @@ def apply_preprocessing(dataset_id: str, request: PreprocessRequest) -> Dict[str
         }
 
     except Exception as e:
-        logger.error(f"Preprocessing failed for {dataset_id}: {e}")
+        import traceback
+        logger.error(f"Preprocessing failed for {dataset_id}: {e}\n{traceback.format_exc()}")
         raise ValueError(f"Preprocessing failed: {str(e)}")
+
+# Helper to map API actions to internal Module4 actions
+def _map_outlier_action(action: str) -> str:
+    if action == 'remove':
+        return 'remove_rows'
+    if action == 'capping':
+        return 'cap_iqr'
+    return action
 
 
 def get_preprocessed_data(dataset_id: str) -> Dict[str, Any]:
